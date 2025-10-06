@@ -32,15 +32,18 @@ Cette analyse explore les déterminants du churn (départ des clients) dans le s
 ---
 
 ## 🚀 Visualisations
+![](https://github.com/FabienHaury/Churn/blob/main/Screenshoots/Graphiques/graph_age.png)   
+![](https://github.com/FabienHaury/Churn/blob/main/Screenshoots/Graphiques/graph_gender_pie.png)   
 
----
-
-## 📈 Résultats 
 
 | Exited  | Age moyen | Age median | Age min | Age max | Score de crédit moyen | Score de crédit std | Solde moyem | Salaire estimé moyen | Nb de produits moyen | Nombre de clients | % Effectifs |
 |----------|----------|------------|---------|---------|------------------|-----------------|--------------|----------------------|-------------------|------------------|-------------|
 | Churned | 44       | 44         | 18      | 92      | 652              | 81              | 71209.98     | 114402.50            | 1.33              | 34921            | 21.16       |
 | Retained | 37       | 36         | 18      | 92      | 658              | 80              | 51255.81     | 112084.29            | 1.62              | 130113           | 78.84       |
+
+---
+
+## 📈 Résultats 
 
 
 ---
