@@ -1,0 +1,432 @@
+---
+title: "Churn turnover"
+author: "Fabien Haury"
+date: 04 10 2025
+format:
+  pdf:
+    geometry:
+        - a4paper
+        - top=20mm
+        - bottom=20mm
+        - left=20mm
+        - right=20mm
+execute:
+  warning: false
+  echo: false
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import dataframe_image as dfi
+```
+
+```{python}
+# Taille standard globale par défaut
+sns.set(rc={"figure.figsize": (6, 6)})
+# Assigne un thème global
+sns.set_theme(style="whitegrid")
+plt.style.use({"axes.grid": False})
+```
+
+```{python}
+df = pd.read_csv(
+    r"C:\Users\fabie\Documents\Python_things\10_projets\Proj_10\Data\churn.csv"
+)
+```
+
+```{python}
+df["Age"] = df["Age"].astype(np.int64)
+df["HasCrCard"] = df["HasCrCard"].astype(np.int64)
+df["IsActiveMember"] = df["IsActiveMember"].astype(np.int64)
+df["Exited"] = df["Exited"].map({0: "Retained", 1: "Churned"})
+df["HasCrCard"] = df["HasCrCard"].map({1: "Credit Card", 0: "No Credit Card"})
+df["IsActiveMember"] = df["IsActiveMember"].map({0: "Non Active", 1: "Active"})
+df = df.drop(['id', 'Surname'], axis=1)
+```
+
+# Tâche
+
+Réaliser une analyse du jeu de données pour mettre en évidence les profils, comportements et tendances caractéristiques des clients en situation de départ ou de churn bancaire.
+
+# Aperçu
+
+```{python}
+df[["CustomerId", "CreditScore", "Geography", "Gender", "Age", "Tenure"]].head()
+```
+
+```{python}
+df[["Balance", "NumOfProducts", "HasCrCard", "IsActiveMember", "Exited"]].head()
+```
+
+# Analyse globale
+
+## Répartition des âges
+
+```{python}
+#| label: graph_age
+#| fig-align: center
+ax = sns.histplot(df, x="Age", binwidth=2, edgecolor="black")
+
+ax.set_xlabel("Âge (années)")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des âges")
+
+plt.show()
+```
+
+Plus de 75% des clients ont moins de 42 ans. La moyenne d'âge est de 38 ans.
+
+## Répartition des scores de crédits
+
+```{python}
+#| label: graph_score
+#| fig-align: center
+ax = sns.histplot(df, x="CreditScore", binwidth=15, edgecolor="black")
+
+ax.set_xlabel("Score de Crédit")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des Scores de Crédit")
+
+plt.show()
+```
+
+La moyenne des scores de crédits est de 656. La majortié des clients ont un score compris entre 600 et 700.
+
+## Répartition des anciennetés
+
+```{python}
+#| label: graph_tenure
+#| fig-align: center
+ax = sns.histplot(df, x="Tenure", binwidth=1, edgecolor="black")
+
+ax.set_xlabel("Ancienneté (années)")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des Anciennetés")
+
+plt.show()
+```
+
+La majorité des clients sont avec la banque depuis plus d'une année. On peut constaté un pic pour les clients proche d'une décennie d'ancienneté.
+
+## Répartition par pays
+
+```{python}
+#| label: graph_country
+#| fig-align: center
+ax = sns.countplot(df, x="Geography", edgecolor="black")
+
+ax.set_xlabel("Pays")
+ax.set_ylabel("Nombre de clients")
+ax.set_title("Répartition par pays des clients")
+
+plt.show()
+```
+
+La banque possède la plus grande partie de ses clients en France (57 %).
+
+## Répartition par nombre de produits achetés
+
+```{python}
+#| label: graph_products
+#| fig-align: center
+ax = sns.countplot(df, x="NumOfProducts", edgecolor="black")
+
+ax.set_xlabel("Nb produits acheté")
+ax.set_ylabel("Nombre de clients")
+ax.set_title("Répartition par nombre de produit acheté des clients")
+
+plt.show()
+```
+
+L'écrasant majorité des clients ont acheté un ou deux produits via la banque.
+
+## Répartition par genre
+
+```{python}
+#| label: graph_gender
+#| fig-align: center
+
+fig, ax = plt.subplots()
+
+df_gender = df.groupby("Gender").size()
+
+colors = ["#FF5E5E", "#5E5EFF"]
+plt.pie(
+    df_gender, labels=df_gender.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("Répartition par genre")
+plt.ylabel("")
+
+plt.show()
+```
+
+Les hommes représentes la majorité des clients avec 56 %. Les femmes représente le reste avec 44 %.
+
+## État de l'activité client
+
+```{python}
+#| label: graph_activity
+#| fig-align: center
+df_actif = df.groupby("IsActiveMember").size()
+
+colors = ["#5E5EFF", "#FF5E5E"]
+plt.pie(
+    df_actif, labels=df_actif.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("État de l'activité client")
+plt.ylabel("")
+
+plt.show()
+```
+
+Il y a parité entre les clients actifs et non-actifs.
+
+## Retention des clients
+
+```{python}
+#| label: graph_exited
+#| fig-align: center
+df_exited = df.groupby("Exited").size()
+
+colors = ["#FF5E5E", "#5E5EFF"]
+plt.pie(
+    df_exited, labels=df_exited.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("Retention des clients")
+plt.ylabel("")
+
+plt.show()
+```
+
+La banque arrive à retenir 79 % de ses clients.
+
+## Répartition des clients possédant une carte de crédit
+
+```{python}
+#| label: graph_card
+#| fig-align: center
+df_card = df.groupby("HasCrCard").size()
+
+colors = ["#5E5EFF", "#FF5E5E"]
+plt.pie(df_card, labels=df_card.index, colors=colors, autopct="%1.1f%%", startangle=90)
+plt.title("Répartition des clients possédant une carte de crédit")
+plt.ylabel("")
+
+plt.show()
+```
+
+Environ 75 % des clients de la banque utilise la carte de crédit de celle-ci.
+
+\newpage
+
+# Analyse des clients churned
+
+```{python}
+df_churned = df.loc[df["Exited"] == "Churned"]
+```
+
+Faisons une focale sur les clients churned.
+
+## Répartition des âges
+
+```{python}
+#| label: graph_churned_age
+#| fig-align: center
+colors = ["#5E5EFF","#FF5E5E"]
+ax = sns.histplot(df, x="Age", hue="Exited", binwidth=2, palette=colors, edgecolor="black")
+
+ax.set_xlabel("Âge (années)")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des âges\nchurned vs retained")
+
+plt.show()
+```
+
+On peut voir que la moyenne d'âge pour les personnes qui ont quittés la banque est supérieure (44 ans) à celle restant dans celle-ci (37 ans).
+
+## Répartition des scores de crédits
+
+```{python}
+#| label: graph_churned_score
+#| fig-align: center
+colors = ["#5E5EFF","#FF5E5E"]
+ax = sns.histplot(df, x="CreditScore", hue="Exited", binwidth=15, palette=colors, edgecolor="black")
+
+ax.set_xlabel("Score de Crédit")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des Scores de Crédit\nchurned vs retained")
+
+plt.show()
+```
+
+Le score de crédit moyen est le même pour les personnes restantes ou partantes (\~ 650).
+
+## Répartition des anciennetés
+
+```{python}
+#| label: graph_churned_tenure
+#| fig-align: center
+colors = ["#5E5EFF","#FF5E5E"]
+ax = sns.histplot(df, x="Tenure", hue="Exited", binwidth=1, palette=colors, edgecolor="black")
+
+ax.set_xlabel("Ancienneté (années)")
+ax.set_ylabel("Effectif")
+ax.set_title("Répartition des Anciennetés\nchurned vs retained")
+
+plt.show()
+```
+
+L'ancienneté suit le même schéma pour les personnes restantes ou partantes. Peu de personnes ont une année d'ancienneté.
+
+## Répartition par pays
+
+```{python}
+#| label: graph_churned_country
+#| fig-align: center
+colors = ["#5E5EFF", "#FF5E5E"]
+
+ax = sns.countplot(df, x="Geography", hue = "Exited", palette=colors, edgecolor="black")
+
+ax.set_xlabel("Pays")
+ax.set_ylabel("Nombre de clients")
+ax.set_title("Répartition des clients par pays\nchurned vs retained")
+
+plt.show()
+```
+
+La France et l'Espagne ont le meilleur taux de rétention avec 83 % pour chaques pays. L'allemagne souffre d'un taux de perte élevé avec 38 % de clients partants.
+
+## Répartition par nombre de produits achetés
+
+```{python}
+#| label: graph_churned_product
+#| fig-align: center
+colors = ["#5E5EFF","#FF5E5E"]
+ax = sns.countplot(df, x="NumOfProducts", hue="Exited", palette=colors, edgecolor="black")
+
+ax.set_xlabel("Nb produits acheté")
+ax.set_ylabel("Nombre de clients")
+ax.set_title("Répartition par nombre de produit acheté des clients\nchurned vs retained")
+
+plt.show()
+```
+
+Les clients ayant fait le plus d'achats via la banque sont ceux ayant le plus haut taux de churn, 88 % pour des clients ayant fait 3 ou plus d'achats quittent la banque.
+
+## Répartition par genre
+
+```{python}
+#| label: graph_churned_gender
+#| fig-align: center
+df_churned_gender = df_churned.groupby("Gender").size()
+
+colors = ["#FF5E5E", "#5E5EFF"]
+plt.pie(
+    df_churned_gender, labels=df_churned_gender.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("Répartition par genre des clients churned")
+plt.ylabel("")
+
+plt.show()
+```
+
+Bien que la majorité des clients de la banque soient des hommes (56 % du total), les femmes sont les clientes ayant les plus grandes chances de quitté la banque.
+
+## État de l'activité client
+
+```{python}
+#| label: graph_churned_activity
+#| fig-align: center
+df_churned_actif = df_churned.groupby("IsActiveMember").size()
+
+colors = ["#5E5EFF", "#FF5E5E"]
+plt.pie(
+    df_churned_actif, labels=df_churned_actif.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("Répartition des clients churned\n Active vs Non Active")
+plt.ylabel("")
+
+plt.show()
+```
+
+Il était attendu que la majorité des clients quittant la banque soient inactifs. Cependant 30 % des quittants étaient des clients actifs.
+
+## Répartition des clients possédant une carte de crédit
+
+```{python}
+#| label: graph_churned_card
+#| fig-align: center
+df_churned_actif = df_churned.groupby("HasCrCard").size()
+
+colors = ["#5E5EFF", "#FF5E5E"]
+plt.pie(
+    df_churned_actif, labels=df_churned_actif.index, colors=colors, autopct="%1.1f%%", startangle=90
+)
+plt.title("Répartition des clients churned\n possédant ou non une carte de crédit")
+plt.ylabel("")
+
+plt.show()
+```
+
+Au vue du pourcentage de personnes ayant une carte de crédit quelque soit sont status, il est normale de voir que 74 % des personnes quittant la banque possédaient ue carte de crédit.
+
+\newpage
+
+# Conclusion et suggestions
+
+On utilisant les données disponibles, voici une liste de suggestions :
+
+-   Age :
+
+    -   Les clients jeunes forment le groupe le plus stable au sein de la banque. Il serait donc pertinent de concentrer les efforts de recrutement sur cette tranche d'âge, car elle est la moins susceptible de partir.
+
+    -   Une étude approfondie est nécessaire pour mieux comprendre les raisons du départ des clients plus âgés.
+
+-   Score de crédit :
+
+    -   Aucune différence notable n'a été observée entre les clients qui restent et ceux qui quittent la banque.
+
+    -   Un bon score de crédit ne garantit pas la fidélité du client.
+
+-   Ancienneté :
+
+    -   La plupart des départs surviennent après une première année passée à la banque.
+    -   Cependant, l'ancienneté ne doit pas être confondue avec la fidélité.
+
+-   Pays :
+
+    -   La majorité des clients provient de France.
+
+    -   Des campagnes ciblées devraient être lancées en Espagne et en Allemagne pour attirer de nouveaux clients.
+
+    -    Il est essentiel de prioriser une analyse détaillée du marché allemand, dont le taux de churn approche les 40%, un niveau préoccupant.
+
+-   Nombre de produits acheté :
+
+    -   Une analyse complémentaire s'impose pour comprendre pourquoi les clients ayant souscrit le plus de produits sont aussi ceux qui partent le plus souvent.
+
+-   Genre :
+
+    -   La clientèle se compose de 56% d'hommes et 44% de femmes.
+
+    -   Malgré une majorité masculine, les femmes présentent un taux de churn plus élevé. Une analyse plus poussée est nécessaire pour expliquer ce phénomène.
+
+-   Activité client :
+
+    -   La moitié des clients sont actifs, l'autre moitié inactive.
+
+    -   Toutefois, les clients inactifs ont une probabilité de départ nettement supérieure (70%) comparée aux clients actifs (30%).
+
+    -   Il serait utile d'investiguer les causes de cette inactivité afin de réduire les départs.
+
+-   Taux de rétention :
+
+    -   La banque réussit à conserver environ 79% de ses clients.
+
+    -   Le taux moyen de churn dans le secteur bancaire est d'environ 5%.
+
+    -   Il convient donc d'approfondir cette analyse pour identifier les
+        facteurs de départ et réduire le churn au niveau moyen sectoriel.
